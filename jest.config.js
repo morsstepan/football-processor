@@ -1,8 +1,9 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/test'],
+  preset: 'ts-jest',
   testMatch: ['**/*.test.ts'],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest'
-  }
+  moduleNameMapper: {
+    '^@aws-sdk/client-eventbridge': '<rootDir>/node_modules/@aws-sdk/client-eventbridge',
+    '^@aws-sdk/client-dynamodb': '<rootDir>/node_modules/@aws-sdk/client-dynamodb',
+  },
 };

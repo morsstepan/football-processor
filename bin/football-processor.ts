@@ -4,6 +4,10 @@ import { FootballProcessorStack } from '../lib/football-processor-stack';
 
 const app = new cdk.App();
 new FootballProcessorStack(app, 'FootballProcessorStack', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
