@@ -7,7 +7,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   if (!event.body) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: 'Missing request body' }),
+      body: JSON.stringify({error: 'Missing request body'}),
     };
   }
 
@@ -17,10 +17,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   } catch (e) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: 'Invalid JSON format' }),
+      body: JSON.stringify({error: 'Invalid JSON format'}),
     };
   }
-
   const requiredFields = ['match_id', 'event_type', 'team', 'player', 'timestamp'];
   const missingFields = requiredFields.filter(field => !(field in payload));
 
@@ -47,13 +46,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Event ingested successfully' }),
+      body: JSON.stringify({message: 'Event ingested successfully'}),
     };
   } catch (error) {
     console.error('Error publishing to EventBridge:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({error: 'Internal server error'}),
     };
   }
 };
