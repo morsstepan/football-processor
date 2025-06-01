@@ -1,58 +1,34 @@
-import { PutEventsCommand, EventBridgeClient } from '@aws-sdk/client-eventbridge';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-
-const client = new EventBridgeClient({});
+import { createEventPublisher } from '../src/service-factory';
+import { validatePayload, validateEventStructure } from '../src/validation';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  if (!event.body) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({error: 'Missing request body'}),
-    };
-  }
-
-  let payload: any;
   try {
-    payload = JSON.parse(event.body);
-  } catch (e) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({error: 'Invalid JSON format'}),
-    };
-  }
-  const requiredFields = ['match_id', 'event_type', 'team', 'player', 'timestamp'];
-  const missingFields = requiredFields.filter(field => !(field in payload));
+    const payload = validatePayload(event);
+    validateEventStructure(payload);
 
-  if (missingFields.length > 0) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({
-        error: 'Missing required fields',
-        missing: missingFields
-      }),
-    };
-  }
+    const publisher = createEventPublisher({
+      eventBusName: process.env.EVENT_BUS_NAME
+    });
 
-  try {
-    // Publish to EventBridge
-    await client.send(new PutEventsCommand({
-      Entries: [{
-        Source: 'football.ingest',
-        DetailType: 'MatchEvent',
-        Detail: JSON.stringify(payload),
-        EventBusName: process.env.EVENT_BUS_NAME,
-      }]
-    }));
+    await publisher.publishEvent(payload);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({message: 'Event ingested successfully'}),
+      body: JSON.stringify({message: 'Event ingested successfully'})
     };
   } catch (error) {
-    console.error('Error publishing to EventBridge:', error);
+    if (error instanceof Error && error.name === 'ValidationError') {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({error: error.message, details: error.stack})
+      };
+    }
+
+    console.error('Ingestion error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({error: 'Internal server error'}),
+      body: JSON.stringify({error: 'Internal server error'})
     };
   }
 };

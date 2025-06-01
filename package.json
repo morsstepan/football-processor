@@ -5,10 +5,8 @@
     "football-processor": "bin/football-processor.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "start:local": "ts-node local-runner.ts",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",
@@ -32,6 +30,7 @@
     "@aws-cdk/aws-lambda": "^1.203.0",
     "@aws-sdk/client-dynamodb": "^3.821.0",
     "@aws-sdk/client-eventbridge": "^3.821.0",
+    "@aws-sdk/util-dynamodb": "^3.821.0",
     "aws-cdk-lib": "2.198.0",
     "aws-lambda": "^1.0.7",
     "aws-sdk-client-mock": "^4.1.0",
