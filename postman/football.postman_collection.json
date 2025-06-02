@@ -1,0 +1,43 @@
+{
+  "info": {
+    "name": "Football Match API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Ingest Event",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+      "match_id": "000001",
+      "event_type": "goal",
+      "team": "Team A",
+      "player": "Player 1",
+      "timestamp": "2023-10-15T14:30:00Z"
+    })
+    },
+    "url": {
+      "raw": "http://localhost:4566/restapis/<api_id>/prod/_user_request_/ingest",
+      "host": ["localhost"],
+      "port": "4566",
+      "path": ["restapis", "<api_id>", "prod", "_user_request_", "ingest"]
+    }
+    }
+  },
+    {
+      "name": "Get Goals",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:4566/restapis/<api_id>/prod/_user_request_/matches/000001/goals",
+          "host": ["localhost"],
+          "port": "4566",
+          "path": ["restapis", "<api_id>", "prod", "_user_request_", "matches", "000001", "goals"]
+        }
+      }
+    }
+  ]
+}

@@ -6,7 +6,8 @@
   },
   "scripts": {
     "start:local": "ts-node local-runner.ts",
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc && tsc -p tsconfig.json"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",

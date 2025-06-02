@@ -1,52 +1,40 @@
+import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { createDataRepository } from '../src/service-factory';
 
-const ENDPOINT_MAP: Record<string, string> = {
-  goals: 'goal',
-  passes: 'pass'
-};
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION,
+  ...(process.env.LOCALSTACK_ENDPOINT && {
+    endpoint: process.env.LOCALSTACK_ENDPOINT
+  })
+});
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const matchId = event.pathParameters?.match_id;
-  if (!matchId) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing match_id parameter' })
-    };
-  }
-
-  const endpoint = event.resource.split('/').pop() || '';
-  const eventType = ENDPOINT_MAP[endpoint];
-
-  if (!eventType) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Invalid endpoint' })
-    };
-  }
-
   try {
-    // Create repository
-    const repository = createDataRepository({
-      tableName: process.env.TABLE_NAME
-    });
+    const matchId = event.pathParameters?.matchId;
+    if (!matchId) return { statusCode: 400, body: 'Missing matchId' };
 
-    // Get count
-    const count = await repository.getEventCount(matchId, eventType);
+    // Determine event type from path
+    const path = event.path.split('/');
+    const eventType = path[path.length - 1].toUpperCase();
+
+    // Query DynamoDB
+    const response = await client.send(new QueryCommand({
+      TableName: process.env.TABLE_NAME,
+      IndexName: 'EventTypeIndex',
+      KeyConditionExpression: 'GSI1PK = :pk AND begins_with(GSI1SK, :sk)',
+      ExpressionAttributeValues: {
+        ':pk': { S: `EVENT_TYPE#${eventType}` },
+        ':sk': { S: `MATCH#${matchId}` }
+      },
+      Select: 'COUNT',
+    }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        match_id: matchId,
-        event_type: endpoint,
-        count
-      })
+      body: JSON.stringify({ count: response.Count || 0 })
     };
   } catch (error) {
     console.error('Query error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' })
-    };
+    return { statusCode: 500, body: JSON.stringify({ message: 'Internal server error' }) };
   }
 };

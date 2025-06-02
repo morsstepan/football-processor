@@ -1,17 +1,25 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as FootballProcessor from '../lib/football-processor-stack';
+import { Template } from 'aws-cdk-lib/assertions';
+import * as cdk from 'aws-cdk-lib';
+import { FootballProcessorStack } from '../lib/football-processor-stack';
 
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/football-processor-stack.ts
-test('SQS Queue Created', () => {
-//   const app = new cdk.App();
-//     // WHEN
-//   const stack = new FootballProcessor.FootballProcessorStack(app, 'MyTestStack');
-//     // THEN
-//   const template = Template.fromStack(stack);
+test('Creates required resources', () => {
+  const app = new cdk.App();
+  const stack = new FootballProcessorStack(app, 'TestStack');
+  const template = Template.fromStack(stack);
 
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
+  // Lambda functions
+  template.resourceCountIs('AWS::Lambda::Function', 3);
+
+  // DynamoDB Table
+  template.hasResourceProperties('AWS::DynamoDB::Table', {
+    KeySchema: [
+      { AttributeName: 'PK', KeyType: 'HASH' },
+      { AttributeName: 'SK', KeyType: 'RANGE' }
+    ]
+  });
+
+  // API Gateway
+  template.hasResourceProperties('AWS::ApiGateway::RestApi', {
+    Name: 'MatchApi'
+  });
 });

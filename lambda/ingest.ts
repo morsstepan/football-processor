@@ -1,34 +1,41 @@
+import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { createEventPublisher } from '../src/service-factory';
-import { validatePayload, validateEventStructure } from '../src/validation';
+
+const client = new EventBridgeClient({
+  region: process.env.AWS_REGION,
+  ...(process.env.LOCALSTACK_ENDPOINT && {
+    endpoint: process.env.LOCALSTACK_ENDPOINT
+  })
+});
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    const payload = validatePayload(event);
-    validateEventStructure(payload);
+    const body = JSON.parse(event.body || '{}');
 
-    const publisher = createEventPublisher({
-      eventBusName: process.env.EVENT_BUS_NAME
-    });
-
-    await publisher.publishEvent(payload);
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({message: 'Event ingested successfully'})
-    };
-  } catch (error) {
-    if (error instanceof Error && error.name === 'ValidationError') {
+    // Validation
+    const requiredFields = ['match_id', 'event_type', 'team', 'player', 'timestamp'];
+    const missing = requiredFields.filter(field => !body[field]);
+    if (missing.length) {
       return {
         statusCode: 400,
-        body: JSON.stringify({error: error.message, details: error.stack})
+        body: JSON.stringify({ message: `Missing fields: ${missing.join(', ')}` })
       };
     }
 
-    console.error('Ingestion error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({error: 'Internal server error'})
-    };
+    // Publish to EventBridge
+    const command = new PutEventsCommand({
+      Entries: [{
+        EventBusName: process.env.EVENT_BUS_NAME,
+        Source: 'football.ingest',
+        DetailType: 'MatchEvent',
+        Detail: JSON.stringify(body),
+      }]
+    });
+
+    await client.send(command);
+    return { statusCode: 200, body: JSON.stringify({ message: 'Event ingested' }) };
+  } catch (error) {
+    console.error('Ingest error:', error);
+    return { statusCode: 500, body: JSON.stringify({ message: 'Internal server error' }) };
   }
 };
