@@ -9,7 +9,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const matchId = event.pathParameters?.matchId;
     if (!matchId) return { statusCode: 400, body: 'Missing matchId' };
 
-    // Determine event type from path
+    // Determine event type
     const path = event.path.split('/');
     const eventType = path[path.length - 1].toUpperCase();
 

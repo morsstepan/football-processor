@@ -14,7 +14,7 @@ export const handler = async (event: EventBridgeEvent<'MatchEvent', any>): Promi
     const year = timestamp.getFullYear();
     const season = timestamp.getMonth() >= 6 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
 
-    // Create optimized keys
+    // Create keys
     item.PK = `MATCH#${item.match_id}`;
     item.SK = `EVENT#${item.timestamp}`;
     item.GSI1PK = `EVENT_TYPE#${item.event_type}`;

@@ -3,18 +3,14 @@ import { FootballProcessorStack } from '../lib/football-processor-stack';
 
 const app = new cdk.App();
 
-// Explicitly configure asset publishing
-process.env.CDK_DISABLE_ASSET_STAGING_CONTEXT = 'true';
-process.env.CDK_ASSET_PUBLISHING_ENDPOINT = 'http://localhost:4566';
-
-// Configure context for LocalStack
+// For localstack testing
 app.node.setContext('@aws-cdk/aws-s3:useVirtualAddressing', false);
-app.node.setContext('aws-cdk:disable-proxy', true);
 app.node.setContext('aws-cdk:assetPathStyle', true);
+app.node.setContext('aws-cdk:disable-proxy', true);
 
 new FootballProcessorStack(app, 'FootballProcessorStack', {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+    account: process.env.CDK_DEFAULT_ACCOUNT || '000000000000',
+    region: process.env.CDK_DEFAULT_REGION || 'us-east-1',
   }
 });
