@@ -92,7 +92,7 @@ export class FootballProcessorStack extends cdk.Stack {
     });
 
     // Enable Lambda Insights
-    // Is commented out because it is a paid feature in Localstack.
+    // Is commented out because it is a paid feature in Localstack. :(
     // processHandler.addLayers(lambda.LayerVersion.fromLayerVersionArn(
     //   this, 'LambdaInsights',
     //   `arn:aws:lambda:${this.region}:580247275435:layer:LambdaInsightsExtension:22`
