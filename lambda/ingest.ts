@@ -1,12 +1,8 @@
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { awsConfig } from '../src/config';
 
-const client = new EventBridgeClient({
-  region: process.env.AWS_REGION,
-  ...(process.env.LOCALSTACK_ENDPOINT && {
-    endpoint: process.env.LOCALSTACK_ENDPOINT
-  })
-});
+const client = new EventBridgeClient(awsConfig);
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {

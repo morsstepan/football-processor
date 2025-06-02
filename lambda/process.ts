@@ -1,13 +1,9 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { EventBridgeEvent } from 'aws-lambda';
+import { awsConfig } from '../src/config';
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION,
-  ...(process.env.LOCALSTACK_ENDPOINT && {
-    endpoint: process.env.LOCALSTACK_ENDPOINT
-  })
-});
+const client = new DynamoDBClient(awsConfig);
 
 export const handler = async (event: EventBridgeEvent<'MatchEvent', any>): Promise<void> => {
   try {

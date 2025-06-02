@@ -4,7 +4,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as iam from 'aws-cdk-lib/aws-iam';
+import { aws_cloudwatch, aws_lambda_destinations, aws_sqs, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 export class FootballProcessorStack extends cdk.Stack {
@@ -13,16 +13,16 @@ export class FootballProcessorStack extends cdk.Stack {
 
     // DynamoDB Table with optimized GSI
     const table = new dynamodb.Table(this, 'MatchEventsTable', {
-      partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
+      partitionKey: {name: 'PK', type: dynamodb.AttributeType.STRING},
+      sortKey: {name: 'SK', type: dynamodb.AttributeType.STRING},
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     table.addGlobalSecondaryIndex({
       indexName: 'EventTypeIndex',
-      partitionKey: { name: 'GSI1PK', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'GSI1SK', type: dynamodb.AttributeType.STRING },
+      partitionKey: {name: 'GSI1PK', type: dynamodb.AttributeType.STRING},
+      sortKey: {name: 'GSI1SK', type: dynamodb.AttributeType.STRING},
     });
 
     // EventBridge Bus
@@ -58,6 +58,14 @@ export class FootballProcessorStack extends cdk.Stack {
       },
     });
 
+    // DLQ for processing errors
+    const dlq = new aws_sqs.Queue(this, 'ProcessDLQ');
+    processHandler.configureAsyncInvoke({
+      onFailure: new aws_lambda_destinations.SqsDestination(dlq)
+    });
+
+
+
     // EventBridge Rule
     new events.Rule(this, 'MatchEventsRule', {
       eventBus: bus,
@@ -68,7 +76,27 @@ export class FootballProcessorStack extends cdk.Stack {
     });
 
     // API Gateway
-    const api = new apigateway.RestApi(this, 'MatchApi');
+    const api = new apigateway.RestApi(this, 'MatchApi', {
+      deployOptions: {
+        tracingEnabled: true,
+      },
+    });
+
+    // Cloudwatch
+    const errorsMetric = processHandler.metricErrors();
+    new aws_cloudwatch.Alarm(this, 'ProcessErrorsAlarm', {
+      metric: errorsMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: 'Processing Lambda errors',
+    });
+
+    // Enable Lambda Insights
+    // Is commented out because it is a paid feature in Localstack.
+    processHandler.addLayers(lambda.LayerVersion.fromLayerVersionArn(
+      this, 'LambdaInsights',
+      `arn:aws:lambda:${this.region}:580247275435:layer:LambdaInsightsExtension:22`
+    ));
 
     // Ingest endpoint: POST /ingest
     const ingestResource = api.root.addResource('ingest');
