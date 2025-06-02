@@ -1,0 +1,22 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/football-processor.ts",
+  "context": {
+    "aws-cdk:enablePathStyleDependencies": true,
+    "aws-cdk:assetPathStyle": true,
+    "aws-cdk:disable-proxy": true,
+    "@aws-cdk/aws-s3:useVirtualAddressing": false,
+    "@aws-cdk/aws-s3:endpoint": "http://localhost:4566",
+
+    "toolkitBucketName": "cdk-assets",
+    "assets.s3.endpoint": "http://localhost:4566",
+    "assets.s3.pathStyle": true,
+    "assets.s3.usePathStyle": true,
+    "watch": {
+      "include": ["**"],
+      "exclude": [
+        "README.md", "cdk*.json", "**/*.d.ts", "**/*.js",
+        "tsconfig.json", "package*.json", "yarn.lock", "node_modules", "test"
+      ]
+    }
+  }
+}
