@@ -1,25 +1,27 @@
-version: '3.8'
 services:
   localstack:
     image: localstack/localstack:latest
+    container_name: football-localstack
     environment:
-      - SERVICES=dynamodb,events,apigateway,lambda,cloudformation,iam,ssm,sqs,cloudwatch
+      - SERVICES=dynamodb,events,apigateway,lambda,cloudformation,iam,ssm,sqs,cloudwatch,s3
       - DEBUG=1
       - DEFAULT_REGION=us-east-1
       - LAMBDA_DOCKER_NETWORK=host
       - MAIN_CONTAINER_NAME=football-localstack
       - LAMBDA_REMOTE_DOCKER=false
       - LAMBDA_PREBUILD_IMAGES=1
+      - LOCALSTACK_HOST=localhost.localstack.cloud
+      - HOSTNAME_EXTERNAL=localhost.localstack.cloud
     ports:
       - "4566:4566"
       - "4510-4559:4510-4559"
+    extra_hosts:
+      - "localhost.localstack.cloud:host-gateway"
     volumes:
       - ./lambda:/var/task
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      localnet:
-        aliases:
-          - s3.localhost.localstack.cloud
+      - localnet
 
 networks:
   localnet:
