@@ -1,16 +1,17 @@
+#!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { FootballProcessorStack } from '../lib/football-processor-stack';
+import { MinimalStack } from '../lib/minimal-stack';
 
 const app = new cdk.App();
 
-// For localstack testing
+// Force local settings
 app.node.setContext('@aws-cdk/aws-s3:useVirtualAddressing', false);
-app.node.setContext('aws-cdk:assetPathStyle', true);
 app.node.setContext('aws-cdk:disable-proxy', true);
+app.node.setContext('aws-cdk:assetPathStyle', true);
 
-new FootballProcessorStack(app, 'FootballProcessorStack', {
+new MinimalStack(app, 'MinimalStack', {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT || '000000000000',
-    region: process.env.CDK_DEFAULT_REGION || 'us-east-1',
+    account: '000000000000',
+    region: 'us-east-1'
   }
 });
