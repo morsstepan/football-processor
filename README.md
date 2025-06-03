@@ -27,7 +27,6 @@ As a result, I was unable to test the entire flow locally. However, the solution
 #### Testing
 - Unit tests for Lambda handlers
 - Postman collection for API endpoint testing
-- Integration test script demonstrating end-to-end flow
 
 #### Challenges Encountered
 
